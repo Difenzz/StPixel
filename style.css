@@ -1,0 +1,148 @@
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+body {
+  margin: 0;
+  background-color: #e4e4e4;
+}
+
+h1 {
+  color: #ffae19;
+  font-family: "VT323", monospace;
+  font-size: 4em;
+  user-select: none;
+}
+
+.stpix{
+  position: absolute;
+  top: 15px;
+  width: 80px;
+  pointer-events: none;
+  user-select: none;
+
+}
+#game {
+  width: 1200px;
+  height: 600px;
+  box-shadow: 2px 2px 10px -5px rgba(0, 0, 0, 0.5);
+  cursor: none;
+}
+
+#colorsChoice {
+  position: fixed;
+  right: 50px;
+  top: 50px;
+}
+#colorsChoice div {
+  background-color: #ff5a5f;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+}
+#colorsChoice div:hover {
+  border-color: #000000;
+}
+
+#cursor {
+  position: absolute;
+  box-sizing: border-box;
+  width: 4px;
+  height: 4px;
+  background-color: #00000042;
+  border: 1px solid #000000;
+  cursor: none;
+}/*# sourceMappingURL=style.css.map */
+
+.deleteall {
+  font-weight: bold;
+  font-style: italic;
+  display: inline-block;
+  padding: 1.5px 1.5px;
+  background-color: #ffae1900;
+  color: black;
+  border-radius: 0px;
+  text-decoration: none;
+  cursor: pointer;
+  position: absolute;
+  border: solid 1px;
+  border-color: #ff000000;
+  top: 67px;
+  left: 175px;
+  user-select: none;
+}
+
+/* Style pour agrandir le sélecteur de couleur */
+
+input[type="color"] {
+
+  width: 300px; /* Largeur personnalisée */
+
+  height: 200px; /* Hauteur personnalisée */
+
+  border: 1px solid #ccc; /* Bordure pour le style */
+
+  border-radius: 5px; /* Coins arrondis */
+
+  cursor: pointer; /* Curseur en forme de main */
+
+}
+
+/* Style de la modale */
+#maModale {
+  display: none; /* Caché par défaut */
+  position: fixed;
+  z-index: 1000; /* Assurez-vous qu'il est au-dessus des autres éléments */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.7); /* Fond plus sombre */
+}
+
+/* Contenu de la modale */
+.modal-content {
+  background-color: #e6e6e6; /* Fond blanc */
+  margin: 10% auto; /* Centrer verticalement */
+  padding: 20px;
+  border-radius: 8px; /* Coins arrondis */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Ombre */
+  width: 80%; /* Largeur de la modale */
+}
+
+/* Bouton de fermeture */
+.close {
+  color: #ff0000; /* Couleur rouge pour le bouton de fermeture */
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Message */
+.modal-message {
+  font-size: 18px; /* Taille de police plus grande */
+  margin-bottom: 20px; /* Espace en bas */
+}
+
+/* Bouton de confirmation */
+.confirm-button {
+  background-color: #28a745; /* Couleur verte */
+  color: #fff; /* Texte blanc */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s; /* Transition pour l'effet de survol */
+}
+
+.confirm-button:hover {
+  background-color: #218838; /* Couleur plus foncée au survol */
+}
