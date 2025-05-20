@@ -7,7 +7,13 @@ const gridCellSize = 5;
 const ctx = game.getContext('2d');
 const gridCtx = game.getContext('2d');
 
-let currentColorChoice = "#000000"; // Couleur par défaut
+let currentColorChoice = "#000000";
+let pixelX, pixelY;
+let colorPickerOpen = false;
+let cursorFollowEnabled = true;
+
+// Cacher la souris par défaut
+game.style.cursor = 'none';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCP8hz2asEyJ8zMOFsq2xBqrDTIsRn0NGA",
@@ -21,60 +27,31 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Ajout d'un champ de saisie pour le code hexadécimal
 const colorInput = document.createElement('input');
-colorInput.type = 'color'; // Utiliser un input de type color pour choisir la couleur
-colorInput.value = currentColorChoice; // Valeur par défaut
-document.body.appendChild(colorInput); // Ajouter l'input au body
+colorInput.type = 'color';
+colorInput.value = currentColorChoice;
+colorInput.style.position = 'absolute';
+colorInput.style.display = 'none';
+document.body.appendChild(colorInput);
 
-colorInput.addEventListener('input', (event) => {
-    currentColorChoice = event.target.value; // Mettre à jour la couleur actuelle
-});
-
-// Fonction pour créer un pixel
 function createPixel(x, y, color) {
     ctx.beginPath();
     ctx.fillStyle = color;
     ctx.fillRect(x, y, gridCellSize, gridCellSize);
 }
 
-// Fonction pour ajouter un pixel dans le jeu
-function addPixelIntoGame() {
-    if (!currentColorChoice) {
-        console.error("currentColorChoice is undefined");
-        return; // Ne pas continuer si currentColorChoice n'est pas défini
-    }
-
-    const x = cursor.offsetLeft;
-    const y = cursor.offsetTop - game.offsetTop;
-
-    createPixel(x, y, currentColorChoice);
-
-    const pixel = {
-        x,
-        y,
-        color: currentColorChoice
-    };
-
-    const pixelRef = db.collection('pixels').doc(`${pixel.x}-${pixel.y}`);
-    pixelRef.set(pixel, { merge: true }).catch(error => {
-        console.error("Error adding pixel to Firestore: ", error);
-    });
+function clearCanvas() {
+    ctx.clearRect(0, 0, game.width, game.height);
+    drawGrids(gridCtx, game.width, game.height, gridCellSize, gridCellSize);
 }
 
-// Écouter le clic sur le canvas pour ajouter un pixel
-game.addEventListener('click', addPixelIntoGame);
-
-// Fonction pour dessiner la grille
 function drawGrids(ctx, width, height, cellWidth, cellHeight) {
     ctx.beginPath();
     ctx.strokeStyle = "#ccc";
-
     for (let i = 0; i < width; i++) {
         ctx.moveTo(i * cellWidth, 0);
         ctx.lineTo(i * cellWidth, height);
     }
-
     for (let i = 0; i < height; i++) {
         ctx.moveTo(0, i * cellHeight);
         ctx.lineTo(width, i * cellHeight);
@@ -83,103 +60,146 @@ function drawGrids(ctx, width, height, cellWidth, cellHeight) {
 }
 drawGrids(gridCtx, game.width, game.height, gridCellSize, gridCellSize);
 
-// Écouter le mouvement de la souris pour déplacer le curseur
+// Curseur personnalisé qui suit la souris uniquement si pas en sélection couleur
 game.addEventListener('mousemove', function (event) {
-    const cursorLeft = event.clientX - (cursor.offsetWidth / 2);
-    const cursorTop = event.clientY - (cursor.offsetHeight / 2);
+    if (!cursorFollowEnabled) return;
 
-    cursor.style.left = Math.floor(cursorLeft / gridCellSize) * gridCellSize + "px";
-    cursor.style.top = Math.floor(cursorTop / gridCellSize) * gridCellSize + "px";
+    const rect = game.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const cursorLeft = Math.floor(x / gridCellSize) * gridCellSize;
+    const cursorTop = Math.floor(y / gridCellSize) * gridCellSize;
+
+    cursor.style.left = (rect.left + cursorLeft) + "px";
+    cursor.style.top = (rect.top + cursorTop) + "px";
 });
 
-// Écouter les changements dans Firestore pour mettre à jour le canvas
+// Mise à jour des pixels en temps réel depuis Firestore
 db.collection('pixels').onSnapshot(function (querySnapshot) {
     querySnapshot.docChanges().forEach(function (change) {
         const { x, y, color } = change.doc.data();
         createPixel(x, y, color);
     });
 });
-// Créer la modale
+
+// Modal suppression pixels
 const modal = document.createElement('div');
 modal.id = 'maModale';
-
-// Créer le contenu de la modale
 const modalContent = document.createElement('div');
-modalContent.className = 'modal-content'; // Appliquer la classe CSS
-
-// Créer le bouton de fermeture
+modalContent.className = 'modal-content';
 const closeButton = document.createElement('span');
 closeButton.innerHTML = '&times;';
-closeButton.className = 'close'; // Appliquer la classe CSS
-
-// Créer le message
+closeButton.className = 'close';
 const message = document.createElement('p');
 message.textContent = 'Êtes-vous sûr de vouloir supprimer tous les pixels ?';
-message.className = 'modal-message'; // Appliquer la classe CSS
-
-// Créer le bouton de confirmation
+message.className = 'modal-message';
 const deleteButton = document.createElement('button');
 deleteButton.textContent = 'Confirmer la suppression';
-deleteButton.className = 'confirm-button'; // Appliquer la classe CSS
+deleteButton.className = 'confirm-button';
 
-// Ajouter les éléments à la modale
 modalContent.appendChild(closeButton);
 modalContent.appendChild(message);
 modalContent.appendChild(deleteButton);
 modal.appendChild(modalContent);
 document.body.appendChild(modal);
 
-// Fonction pour supprimer tous les documents de la collection
 async function deleteAllPixels() {
     const pixelsRef = db.collection("pixels");
     const snapshot = await pixelsRef.get();
-
-    const batch = db.batch(); // Utiliser un batch pour supprimer plusieurs documents à la fois
+    const batch = db.batch();
 
     snapshot.forEach(doc => {
-        batch.delete(doc.ref); // Ajouter chaque document à la batch
+        batch.delete(doc.ref);
     });
 
     try {
-        await batch.commit(); // Exécuter la batch
+        await batch.commit();
         console.log("Tous les pixels ont été supprimés avec succès !");
-        modal.style.display = "none"; // Fermer la modale après la suppression
+        clearCanvas();
+        modal.style.display = "none";
     } catch (error) {
         console.error("Erreur lors de la suppression des pixels : ", error);
     }
 }
 
-// Écouter le clic sur le bouton pour supprimer tous les pixels
 deleteButton.addEventListener("click", deleteAllPixels);
+closeButton.onclick = () => { modal.style.display = "none"; };
+window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; };
+document.getElementById("ouvrirModal").addEventListener("click", () => { modal.style.display = "block"; });
 
-// Écouter le clic sur le bouton de fermeture
-closeButton.onclick = function() {
-    modal.style.display = "none";
-}
+// Bouton Valider
+const validateBtn = document.createElement('button');
+validateBtn.textContent = "👍";
+validateBtn.style.position = 'absolute';
+validateBtn.style.display = 'none';
+validateBtn.style.padding = '8px 16px';
+validateBtn.style.backgroundColor = '#28a745';
+validateBtn.style.color = 'white';
+validateBtn.style.border = 'none';
+validateBtn.style.borderRadius = '4px';
+validateBtn.style.cursor = 'pointer';
+validateBtn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+validateBtn.style.fontWeight = 'bold';
+validateBtn.style.fontSize = '14px';
+validateBtn.style.zIndex = '1000';
+validateBtn.style.transition = 'background-color 0.3s ease';
+validateBtn.onmouseenter = () => validateBtn.style.backgroundColor = '#218838';
+validateBtn.onmouseleave = () => validateBtn.style.backgroundColor = '#28a745';
+document.body.appendChild(validateBtn);
 
-// Écouter le clic en dehors de la modale pour la fermer
-window.onclick = function(event) {
-    if (event.target === modal) {
-        modal.style.display = "none";
+// Ouvrir color picker au clic
+game.addEventListener('click', (event) => {
+    const rect = game.getBoundingClientRect();
+    const clickX = Math.floor((event.clientX - rect.left) / gridCellSize) * gridCellSize;
+    const clickY = Math.floor((event.clientY - rect.top) / gridCellSize) * gridCellSize;
+
+    if (colorPickerOpen && clickX === pixelX && clickY === pixelY) {
+        return;
     }
-}
 
-// Écouter le clic sur le bouton pour ouvrir la modale
-deleteButton.addEventListener("click", deleteAllPixels);
+    pixelX = clickX;
+    pixelY = clickY;
 
-// Écouter le clic sur le bouton de fermeture
-closeButton.onclick = function() {
-    modal.style.display = "none";
-}
+    colorInput.value = currentColorChoice;
+    colorInput.style.left = `${event.clientX}px`;
+    colorInput.style.top = `${event.clientY}px`;
+    colorInput.style.display = 'block';
 
-// Écouter le clic en dehors de la modale pour la fermer
-window.onclick = function(event) {
-    if (event.target === modal) {
-        modal.style.display = "none";
-    }
-}
+    validateBtn.style.left = `${event.clientX + colorInput.offsetWidth + 5}px`;
+    validateBtn.style.top = `${event.clientY}px`;
+    validateBtn.style.display = 'block';
 
-// Écouter le clic sur le bouton pour ouvrir la modale
-document.getElementById("ouvrirModal").addEventListener("click", function() {
-    modal.style.display = "block";
+    // Bloquer curseur personnalisé
+    cursorFollowEnabled = false;
+
+    // Fixer le curseur sur le pixel choisi
+    cursor.style.left = (rect.left + pixelX) + 'px';
+    cursor.style.top = (rect.top + pixelY) + 'px';
+
+    // Montrer la souris native
+    game.style.cursor = 'default';
+
+    colorInput.focus();
+    colorPickerOpen = true;
+});
+
+// Valider la couleur sélectionnée
+validateBtn.addEventListener('click', () => {
+    currentColorChoice = colorInput.value;
+    createPixel(pixelX, pixelY, currentColorChoice);
+
+    const pixel = { x: pixelX, y: pixelY, color: currentColorChoice };
+    const pixelRef = db.collection('pixels').doc(`${pixel.x}-${pixel.y}`);
+    pixelRef.set(pixel, { merge: true }).catch(console.error);
+
+    colorInput.style.display = 'none';
+    validateBtn.style.display = 'none';
+    colorPickerOpen = false;
+
+    // Réactiver le curseur personnalisé
+    cursorFollowEnabled = true;
+
+    // Cacher la souris native
+    game.style.cursor = 'none';
 });
