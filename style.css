@@ -160,3 +160,20 @@ input[type="color"] {
   background-color: #218838; /* Couleur plus foncée au survol */
 }
 
+
+
+
+.dark-mode {
+    background-color: #383838;
+    color: #000000;
+}
+.dark-mode .modal-content {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.dark-mode button {
+  background-color: #bbbbbb !important;
+  color: #000000 !important;
+  border-color: #555 !important;
+}
