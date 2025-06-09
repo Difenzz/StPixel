@@ -203,3 +203,72 @@ validateBtn.addEventListener('click', () => {
     // Cacher la souris native
     game.style.cursor = 'none';
 });
+
+
+// Créer la modale
+const fullscreenModal = document.createElement('div');
+fullscreenModal.id = 'fullscreenModal';
+fullscreenModal.innerHTML = `
+  <div class="fullscreen-modal-content">
+    <p>🎮 Pour une expérience plus amusante sur ordinateur, veuillez mettre votre page en plein écran !</p>
+    <button id="closeFullscreenModal">OK</button>
+  </div>
+`;
+document.body.appendChild(fullscreenModal);
+
+// Styles CSS
+const style = document.createElement('style');
+style.textContent = `
+  #fullscreenModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+  .fullscreen-modal-content {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 400px;
+    font-size: 16px;
+    font-family: sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: pop 0.3s ease-out;
+  }
+  .fullscreen-modal-content button {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background:rgb(0, 114, 10);
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .fullscreen-modal-content button:hover {
+    background:rgb(0, 226, 38);
+  }
+  @keyframes pop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+`;
+document.head.appendChild(style);
+
+// Affichage conditionnel
+window.addEventListener('load', () => {
+  const isDesktop = window.innerWidth > 768;
+  if (isDesktop) {
+    fullscreenModal.style.display = 'flex';
+  }
+});
+
+// Fermeture de la modale
+document.getElementById('closeFullscreenModal').addEventListener('click', () => {
+  fullscreenModal.style.display = 'none';
+});
