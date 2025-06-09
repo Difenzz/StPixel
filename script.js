@@ -210,13 +210,12 @@ const fullscreenModal = document.createElement('div');
 fullscreenModal.id = 'fullscreenModal';
 fullscreenModal.innerHTML = `
   <div class="fullscreen-modal-content">
-    <p>🎮 Pour une expérience plus amusante sur ordinateur, veuillez mettre votre page en plein écran !</p>
+    <p>🎮 Pour une expérience plus amusante et afin d'éviter les bugs sur ordinateur, veuillez mettre votre page en plein écran !</p>
     <button id="closeFullscreenModal">OK</button>
   </div>
 `;
 document.body.appendChild(fullscreenModal);
 
-// Styles CSS
 const style = document.createElement('style');
 style.textContent = `
   #fullscreenModal {
@@ -240,19 +239,28 @@ style.textContent = `
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     animation: pop 0.3s ease-out;
   }
+  /* ✅ Bouton de la modale — vert même en dark mode */
   .fullscreen-modal-content button {
     margin-top: 15px;
     padding: 8px 16px;
-    background:rgb(0, 114, 10);
-    border: none;
-    color: white;
+    background: #00720a !important;  /* forçage ici */
+    border: none !important;
+    color: white !important;
     font-weight: bold;
     border-radius: 6px;
     cursor: pointer;
   }
   .fullscreen-modal-content button:hover {
-    background:rgb(0, 226, 38);
+    background: rgb(0, 226, 38) !important;
   }
+
+  /* Optional: support for dark modal */
+  body.dark-mode .fullscreen-modal-content {
+    background: #1e1e1e;
+    color: #f0f0f0;
+    box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+  }
+
   @keyframes pop {
     from { transform: scale(0.8); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
@@ -272,3 +280,48 @@ window.addEventListener('load', () => {
 document.getElementById('closeFullscreenModal').addEventListener('click', () => {
   fullscreenModal.style.display = 'none';
 });
+
+// DARK MODE 
+const darkModeBtn = document.createElement('button');
+darkModeBtn.textContent = '🌙 Mode sombre';
+darkModeBtn.style.position = 'absolute';
+darkModeBtn.style.top = '10px';
+darkModeBtn.style.right = '10px';
+darkModeBtn.style.padding = '8px 16px';
+darkModeBtn.style.border = 'none';
+darkModeBtn.style.borderRadius = '30px';  // Corrigé pour avoir un vrai arrondi
+darkModeBtn.style.cursor = 'pointer';
+darkModeBtn.style.backgroundColor = '#222';
+darkModeBtn.style.color = 'white';
+darkModeBtn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+darkModeBtn.style.fontWeight = 'bold';
+darkModeBtn.style.zIndex = '1001';
+document.body.appendChild(darkModeBtn);
+
+const image = document.querySelector('.stpix'); // cible l'image à changer
+
+function updateImageSrc(isDark) {
+    if (!image) return; // si pas d'image, ne rien faire
+    image.src = isDark ? 'darkstpix.png' : 'stpix.png';
+}
+
+darkModeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+
+    const isDark = document.body.classList.contains('dark-mode');
+    darkModeBtn.textContent = isDark ? '☀️ Mode clair' : '🌙 Mode sombre';
+
+    updateImageSrc(isDark);
+
+    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+});
+
+// Au chargement de la page, applique l'état sauvegardé
+const savedMode = localStorage.getItem('darkMode');
+if (savedMode === 'enabled') {
+    document.body.classList.add('dark-mode');
+    darkModeBtn.textContent = '☀️ Mode clair';
+    updateImageSrc(true);
+} else {
+    updateImageSrc(false);
+}
