@@ -210,7 +210,8 @@ const fullscreenModal = document.createElement('div');
 fullscreenModal.id = 'fullscreenModal';
 fullscreenModal.innerHTML = `
   <div class="fullscreen-modal-content">
-    <p>🎮 Pour une expérience plus amusante et afin d'éviter les bugs sur ordinateur, veuillez mettre votre page en plein écran !</p>
+    <h1 class="h1">BIENVENUE SUR ST-PIXEL</h1>
+    <p class="pO">🎮 Pour une expérience plus amusante et afin d'éviter les bugs sur ordinateur, veuillez mettre votre page en plein écran ! 🎮</p>
     <button id="closeFullscreenModal">OK</button>
   </div>
 `;
@@ -227,6 +228,16 @@ style.textContent = `
     justify-content: center;
     align-items: center;
     z-index: 2000;
+  }
+
+  .h1{
+  font-size : 40px; 
+  }
+
+  .pO{
+  align-content: center;
+  font-size:15px;  
+
   }
   .fullscreen-modal-content {
     background: white;
