@@ -358,7 +358,7 @@ toggleChatBtn.addEventListener('click', () => {
     toggleChatBtn.textContent = '💬';
   } else {
     chatContainer.style.display = 'none';
-    toggleChatBtn.textContent = '💬';
+    toggleChatBtn.textContent = '❌';
   }
 });
 
