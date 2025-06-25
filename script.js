@@ -355,10 +355,10 @@ toggleChatBtn.addEventListener('click', () => {
 
   if (chatVisible) {
     chatContainer.style.display = 'block';
-    toggleChatBtn.textContent = '💬';
+    toggleChatBtn.textContent = '❌';
   } else {
     chatContainer.style.display = 'none';
-    toggleChatBtn.textContent = '❌';
+    toggleChatBtn.textContent = '💬';
   }
 });
 
