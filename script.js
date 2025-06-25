@@ -344,7 +344,7 @@ if (savedMode === 'enabled') {
 
 
 const toggleChatBtn = document.createElement('button');
-toggleChatBtn.textContent = 'Ouvrir le chat';
+toggleChatBtn.textContent = '💬';
 toggleChatBtn.id = 'toggle-chat-btn';
 document.body.appendChild(toggleChatBtn);
 
@@ -355,10 +355,10 @@ toggleChatBtn.addEventListener('click', () => {
 
   if (chatVisible) {
     chatContainer.style.display = 'block';
-    toggleChatBtn.textContent = 'Fermer le chat';
+    toggleChatBtn.textContent = '💬';
   } else {
     chatContainer.style.display = 'none';
-    toggleChatBtn.textContent = 'Ouvrir le chat';
+    toggleChatBtn.textContent = '💬';
   }
 });
 
