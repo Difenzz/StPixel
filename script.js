@@ -340,221 +340,243 @@ if (savedMode === 'enabled') {
 
 
 
-//CHAT ECRIT TEST 
 
+ // ----- CHAT  -----
+ 
+ const toggleChatBtn = document.createElement('button');
+  toggleChatBtn.textContent = '💬';
+  toggleChatBtn.id = 'toggle-chat-btn';
+  document.body.appendChild(toggleChatBtn);
 
-const toggleChatBtn = document.createElement('button');
-toggleChatBtn.textContent = '💬';
-toggleChatBtn.id = 'toggle-chat-btn';
-document.body.appendChild(toggleChatBtn);
+  let chatVisible = false;
 
-let chatVisible = false;
-
-toggleChatBtn.addEventListener('click', () => {
-  chatVisible = !chatVisible;
-
-  if (chatVisible) {
-    chatContainer.style.display = 'block';
-    toggleChatBtn.textContent = '❌';
-  } else {
-    chatContainer.style.display = 'none';
-    toggleChatBtn.textContent = '💬';
-  }
-});
-
-const toggleChatStyles = document.createElement('style');
-toggleChatStyles.textContent = `
-  #toggle-chat-btn {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    padding: 10px 16px;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 0 8px rgba(0,0,0,0.2);
-    z-index: 1000;
-  }
-  #toggle-chat-btn:hover {
-    background: #218838;
-  }
-`;
-document.head.appendChild(toggleChatStyles);
-
-
-
-
-// ----- CHAT UI -----
-const chatContainer = document.createElement('div');
-chatContainer.id = 'chat-container';
-chatContainer.innerHTML = `
-  <div id="chat-header">💬 Chat</div>
-  <div id="chat-messages"></div>
-  <div id="chat-input-container">
-    <input type="text" id="chat-input" placeholder="Tape ton message ici...">
-    <button id="send-chat">➤</button>
-  </div>
-`;
-document.body.appendChild(chatContainer);
-
-// ----- STYLES MODERNES -----
-const chatStyles = document.createElement('style');
-chatStyles.textContent = `
-  #chat-container {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 320px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    overflow: hidden;
-    font-family: 'Segoe UI', sans-serif;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #ddd;
-  }
-
-  #chat-header {
-    background: #007bff;
-    color: white;
-    padding: 10px;
-    font-weight: bold;
-    text-align: center;
-  }
-
-  #chat-messages {
-    height: 260px;
-    padding: 10px;
-    overflow-y: auto;
-    background: #f5f7fa;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .chat-message {
-    max-width: 80%;
-    padding: 8px 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    word-wrap: break-word;
-    position: relative;
-    transition: background 0.3s ease;
-  }
-
-  .from-me {
-    align-self: flex-end;
-    background: #d1e7dd;
-    border-bottom-right-radius: 0;
-    text-align: right;
-  }
-
-  .from-others {
-    align-self: flex-start;
-    background: #f8d7da;
-    border-bottom-left-radius: 0;
-    text-align: left;
-  }
-
-  #chat-input-container {
-    display: flex;
-    padding: 10px;
-    border-top: 1px solid #ddd;
-    background: #fff;
-  }
-
-  #chat-input {
-    flex: 1;
-    padding: 8px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    outline: none;
-  }
-
-  #send-chat {
-    margin-left: 8px;
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0 16px;
-    border-radius: 20px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-
-  #send-chat:hover {
-    background: #0056b3;
-  }
-`;
-document.head.appendChild(chatStyles);
-
-// ----- DEVICE ID -----
-let deviceId = localStorage.getItem("deviceId");
-if (!deviceId) {
-  deviceId = crypto.randomUUID();
-  localStorage.setItem("deviceId", deviceId);
-}
-
-// ----- CHAT LOGIQUE -----
-const chatInput = document.getElementById('chat-input');
-const sendChatBtn = document.getElementById('send-chat');
-const chatMessages = document.getElementById('chat-messages');
-
-// Vérifie la présence d’un lien
-function containsLink(text) {
-  const linkRegex = /(https?:\/\/|www\.)\S+/i;
-  return linkRegex.test(text);
-}
-
-// Envoie un message
-function sendMessage() {
-  const text = chatInput.value.trim();
-  if (text === "") return;
-
-  if (containsLink(text)) {
-    alert("Les liens ne sont pas autorisés dans le chat.");
-    return;
-  }
-
-  db.collection("chat").add({
-    message: text,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    deviceId: deviceId
+  toggleChatBtn.addEventListener('click', () => {
+    chatVisible = !chatVisible;
+    chatContainer.style.display = chatVisible ? 'flex' : 'none';
+    toggleChatBtn.textContent = chatVisible ? '❌' : '💬';
   });
 
-  chatInput.value = "";
-}
+  const toggleChatStyles = document.createElement('style');
+  toggleChatStyles.textContent = `
+    #toggle-chat-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    #toggle-chat-btn:hover {
+      background: #218838;
+    }
+  `;
+  document.head.appendChild(toggleChatStyles);
 
-// Événements
-sendChatBtn.addEventListener("click", sendMessage);
-chatInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
+  // ----- CHAT UI -----
+  const chatContainer = document.createElement('div');
+  chatContainer.id = 'chat-container';
+  chatContainer.style.display = 'none'; // 👈 Masqué par défaut
+  chatContainer.innerHTML = `
+    <div id="chat-header">💬 Chat</div>
+    <div id="chat-messages"></div>
+    <div id="chat-input-container">
+      <input type="text" id="chat-input" placeholder="Tape ton message ici...">
+      <button id="send-chat">➤</button>
+    </div>
+  `;
+  document.body.appendChild(chatContainer);
 
-// ----- AFFICHAGE TEMPS RÉEL -----
-db.collection("chat").orderBy("timestamp", "asc").onSnapshot(snapshot => {
-  chatMessages.innerHTML = "";
-  snapshot.forEach(doc => {
-    const msg = doc.data();
-    const bubble = document.createElement('div');
-    bubble.classList.add('chat-message');
-
-    if (msg.deviceId === deviceId) {
-      bubble.classList.add('from-me');
-    } else {
-      bubble.classList.add('from-others');
+  // ----- STYLES MODERNES -----
+  const chatStyles = document.createElement('style');
+  chatStyles.textContent = `
+    #chat-container {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 320px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #ddd;
     }
 
-    bubble.textContent = msg.message;
-    chatMessages.appendChild(bubble);
+    #chat-header {
+      background: #007bff;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    #chat-messages {
+      height: 260px;
+      padding: 10px;
+      overflow-y: auto;
+      background: #f5f7fa;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chat-message {
+      max-width: 80%;
+      padding: 8px 12px;
+      border-radius: 16px;
+      font-size: 14px;
+      word-wrap: break-word;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+
+    .from-me {
+      align-self: flex-end;
+      background: #d1e7dd;
+      border-bottom-right-radius: 0;
+      text-align: right;
+    }
+
+    .from-others {
+      align-self: flex-start;
+      background: #f8d7da;
+      border-bottom-left-radius: 0;
+      text-align: left;
+    }
+
+    .chat-timestamp {
+      display: block;
+      font-size: 10px;
+      color: #777;
+      margin-top: 4px;
+    }
+
+    #chat-input-container {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background: #fff;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #send-chat {
+      margin-left: 8px;
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 0 16px;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    #send-chat:hover {
+      background: #0056b3;
+    }
+  `;
+  document.head.appendChild(chatStyles);
+
+  // ----- DEVICE ID -----
+  let deviceId = localStorage.getItem("deviceId");
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("deviceId", deviceId);
+  }
+
+  // ----- CHAT LOGIQUE -----
+  const chatInput = document.getElementById('chat-input');
+  const sendChatBtn = document.getElementById('send-chat');
+  const chatMessages = document.getElementById('chat-messages');
+
+  function containsLink(text) {
+    const linkRegex = /(https?:\/\/|www\.)\S+/i;
+    return linkRegex.test(text);
+  }
+
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (text === "") return;
+
+    if (containsLink(text)) {
+      alert("Les liens ne sont pas autorisés dans le chat.");
+      return;
+    }
+
+    db.collection("chat").add({
+      message: text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      deviceId: deviceId
+    });
+
+    chatInput.value = "";
+  }
+
+  sendChatBtn.addEventListener("click", sendMessage);
+  chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
   });
 
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-});
+  // ----- AFFICHAGE TEMPS RÉEL -----
+  db.collection("chat").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+    chatMessages.innerHTML = "";
+
+    snapshot.forEach(doc => {
+      const msg = doc.data();
+      const bubble = document.createElement('div');
+      bubble.classList.add('chat-message');
+
+      if (msg.deviceId === deviceId) {
+        bubble.classList.add('from-me');
+      } else {
+        bubble.classList.add('from-others');
+      }
+
+      // Affichage heure/date
+      let timeDisplay = '';
+      if (msg.timestamp && msg.timestamp.toDate) {
+        const msgDate = msg.timestamp.toDate();
+        const now = new Date();
+        const diff = now - msgDate;
+
+        if (diff < 24 * 60 * 60 * 1000) {
+          // Heure (moins de 24h)
+          const h = msgDate.getHours().toString().padStart(2, '0');
+          const m = msgDate.getMinutes().toString().padStart(2, '0');
+          timeDisplay = `${h}:${m}`;
+        } else {
+          // Date (plus de 24h)
+          const d = msgDate.getDate().toString().padStart(2, '0');
+          const mo = (msgDate.getMonth() + 1).toString().padStart(2, '0');
+          const y = msgDate.getFullYear();
+          timeDisplay = `${d}/${mo}/${y}`;
+        }
+      }
+
+      bubble.innerHTML = `
+        <div>${msg.message}</div>
+        <span class="chat-timestamp">${timeDisplay}</span>
+      `;
+
+      chatMessages.appendChild(bubble);
+    });
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
