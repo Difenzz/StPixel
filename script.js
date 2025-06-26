@@ -341,242 +341,415 @@ if (savedMode === 'enabled') {
 
 
 
- // ----- CHAT  -----
- 
- const toggleChatBtn = document.createElement('button');
+
+
+
+
+
+
+// ----- BOUTON TOGGLE -----
+const toggleChatBtn = document.createElement('button');
+toggleChatBtn.textContent = '💬';
+toggleChatBtn.id = 'toggle-chat-btn';
+document.body.appendChild(toggleChatBtn);
+
+let chatVisible = false;
+
+// ----- CHAT UI -----
+const chatContainer = document.createElement('div');
+chatContainer.id = 'chat-container';
+chatContainer.style.display = 'none'; // Chat fermé par défaut
+chatContainer.innerHTML = `
+  <div id="chat-header">
+    💬 Chat
+    <button id="change-pseudo-btn" title="Changer pseudo" style="margin-left:10px; font-size:14px; padding:2px 6px; cursor:pointer; border:none; border-radius:6px; background:#ffc107; color:#333;">✎</button>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Tape ton message ici...">
+    <button id="send-chat">➤</button>
+  </div>
+`;
+document.body.appendChild(chatContainer);
+
+// ----- MODALE PSEUDO -----
+const modalOverlay = document.createElement('div');
+modalOverlay.id = 'modal-overlay';
+modalOverlay.style.display = 'none';
+modalOverlay.innerHTML = `
+  <div id="modal">
+    <h2>Choisis ton pseudo</h2>
+    <input type="text" id="pseudo-input" placeholder="Ton pseudo">
+    <button id="pseudo-ok">OK</button>
+  </div>
+`;
+document.body.appendChild(modalOverlay);
+
+// ----- STYLES -----
+const styles = document.createElement('style');
+styles.textContent = `
+  #toggle-chat-btn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    padding: 10px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    font-size: 14px;
+  }
+  #toggle-chat-btn:hover {
+    background: #218838;
+  }
+  #chat-container {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 320px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 13px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+  }
+  #chat-header {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #change-pseudo-btn {
+    margin-left: 10px;
+    font-size: 14px;
+    padding: 2px 6px;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background: #ffc107;
+    color: #333;
+    transition: background 0.3s ease;
+  }
+  #change-pseudo-btn:hover {
+    background: #e0a800;
+  }
+  #chat-messages {
+    height: 260px;
+    padding: 10px;
+    overflow-y: auto;
+    background: #f5f7fa;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .chat-message {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    word-wrap: break-word;
+    position: relative;
+    transition: background 0.3s ease;
+  }
+  .from-me {
+    align-self: flex-end;
+    background: #d1e7dd;
+    border-bottom-right-radius: 0;
+    text-align: right;
+  }
+  .from-others {
+    align-self: flex-start;
+    background: #f8d7da;
+    border-bottom-left-radius: 0;
+    text-align: left;
+  }
+  .chat-pseudo {
+    font-weight: 700;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 4px;
+  }
+  .message-info {
+    font-size: 10px;
+    color: #888;
+    margin-top: 4px;
+  }
+  #chat-input-container {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    background: #fff;
+  }
+  #chat-input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+    outline: none;
+  }
+  #send-chat {
+    margin-left: 8px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0 16px;
+    border-radius: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  #send-chat:hover {
+    background: #0056b3;
+  }
+  #modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+
+  #modal {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 280px;
+
+  font-family: 'Segoe UI', sans-serif; /* même police que le chat */
+  font-size: 16px;
+  color: #222;
+}
+
+
+  
+  #modal h2 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 18px;
+    color: #333;
+  }
+  #pseudo-input {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+  }
+  #pseudo-ok {
+    padding: 8px 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s ease;
+  }
+  #pseudo-ok:hover {
+    background: #218838;
+  }
+`;
+document.head.appendChild(styles);
+
+// ----- DEVICE ID -----
+let deviceId = localStorage.getItem("deviceId");
+if (!deviceId) {
+  deviceId = crypto.randomUUID();
+  localStorage.setItem("deviceId", deviceId);
+}
+
+// ----- Mots interdits -----
+const forbiddenWords = ["merde", "connard", "fdp", "putain"]; // adapte la liste
+
+// ----- UTILITAIRES -----
+function containsLink(text) {
+  const linkRegex = /(https?:\/\/|www\.)\S+/i;
+  return linkRegex.test(text);
+}
+
+function containsForbiddenWord(text) {
+  const lower = text.toLowerCase();
+  return forbiddenWords.some(word => lower.includes(word));
+}
+
+function formatTimestamp(timestamp) {
+  if (!timestamp) return "";
+  const date = timestamp.toDate();
+  const now = new Date();
+
+  const sameDay = date.getFullYear() === now.getFullYear() &&
+                  date.getMonth() === now.getMonth() &&
+                  date.getDate() === now.getDate();
+
+  if (sameDay) {
+    // Affiche hh:mm
+    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  } else {
+    // Affiche jj/mm/aaaa
+    return date.toLocaleDateString();
+  }
+}
+
+// ----- MODALE PSEUDO -----
+const pseudoInput = document.getElementById('pseudo-input') || (() => {
+  const el = document.querySelector('#pseudo-input');
+  return el;
+})();
+const pseudoOkBtn = document.getElementById('pseudo-ok') || (() => {
+  const el = document.querySelector('#pseudo-ok');
+  return el;
+})();
+
+function updateUsername(pseudo) {
+  localStorage.setItem("pseudo", pseudo.trim());
+}
+
+function openModal() {
+  modalOverlay.style.display = "flex";
+}
+
+function closeModal() {
+  modalOverlay.style.display = "none";
+}
+
+// ----- INITIALISATION -----
+
+// On récupère les éléments de chat après ajout au DOM
+const chatInput = document.getElementById('chat-input');
+const sendChatBtn = document.getElementById('send-chat');
+const chatMessages = document.getElementById('chat-messages');
+const changePseudoBtn = document.getElementById('change-pseudo-btn');
+
+toggleChatBtn.addEventListener('click', () => {
+  chatVisible = !chatVisible;
+  if (chatVisible) {
+    chatContainer.style.display = 'flex';
+    toggleChatBtn.textContent = '❌';
+  } else {
+    chatContainer.style.display = 'none';
+    toggleChatBtn.textContent = '💬';
+  }
+});
+
+// Validation pseudo
+pseudoOkBtn.addEventListener('click', () => {
+  const pseudo = pseudoInput.value.trim();
+  if (pseudo === "") {
+    alert("Merci de saisir un pseudo valide.");
+    return;
+  }
+  updateUsername(pseudo);
+  closeModal();
+  chatContainer.style.display = 'none';  // Chat reste fermé après choix pseudo
+  chatVisible = false;
   toggleChatBtn.textContent = '💬';
-  toggleChatBtn.id = 'toggle-chat-btn';
-  document.body.appendChild(toggleChatBtn);
+  pseudoInput.value = "";
+});
 
-  let chatVisible = false;
+// Ouvrir modale changement pseudo via bouton
+changePseudoBtn.addEventListener('click', () => {
+  openModal();
+});
 
-  toggleChatBtn.addEventListener('click', () => {
-    chatVisible = !chatVisible;
-    chatContainer.style.display = chatVisible ? 'flex' : 'none';
-    toggleChatBtn.textContent = chatVisible ? '❌' : '💬';
-  });
+// Envoie message
+function sendMessage() {
+  const text = chatInput.value.trim();
+  if (text === "") return;
 
-  const toggleChatStyles = document.createElement('style');
-  toggleChatStyles.textContent = `
-    #toggle-chat-btn {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      padding: 10px 16px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      box-shadow: 0 0 8px rgba(0,0,0,0.2);
-      z-index: 1000;
-    }
-    #toggle-chat-btn:hover {
-      background: #218838;
-    }
-  `;
-  document.head.appendChild(toggleChatStyles);
-
-  // ----- CHAT UI -----
-  const chatContainer = document.createElement('div');
-  chatContainer.id = 'chat-container';
-  chatContainer.style.display = 'none'; // 👈 Masqué par défaut
-  chatContainer.innerHTML = `
-    <div id="chat-header">💬 Chat</div>
-    <div id="chat-messages"></div>
-    <div id="chat-input-container">
-      <input type="text" id="chat-input" placeholder="Tape ton message ici...">
-      <button id="send-chat">➤</button>
-    </div>
-  `;
-  document.body.appendChild(chatContainer);
-
-  // ----- STYLES MODERNES -----
-  const chatStyles = document.createElement('style');
-  chatStyles.textContent = `
-    #chat-container {
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      width: 320px;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-      overflow: hidden;
-      font-family: 'Segoe UI', sans-serif;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid #ddd;
-    }
-
-    #chat-header {
-      background: #007bff;
-      color: white;
-      padding: 10px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    #chat-messages {
-      height: 260px;
-      padding: 10px;
-      overflow-y: auto;
-      background: #f5f7fa;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .chat-message {
-      max-width: 80%;
-      padding: 8px 12px;
-      border-radius: 16px;
-      font-size: 14px;
-      word-wrap: break-word;
-      position: relative;
-      transition: background 0.3s ease;
-    }
-
-    .from-me {
-      align-self: flex-end;
-      background: #d1e7dd;
-      border-bottom-right-radius: 0;
-      text-align: right;
-    }
-
-    .from-others {
-      align-self: flex-start;
-      background: #f8d7da;
-      border-bottom-left-radius: 0;
-      text-align: left;
-    }
-
-    .chat-timestamp {
-      display: block;
-      font-size: 10px;
-      color: #777;
-      margin-top: 4px;
-    }
-
-    #chat-input-container {
-      display: flex;
-      padding: 10px;
-      border-top: 1px solid #ddd;
-      background: #fff;
-    }
-
-    #chat-input {
-      flex: 1;
-      padding: 8px;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      outline: none;
-    }
-
-    #send-chat {
-      margin-left: 8px;
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 0 16px;
-      border-radius: 20px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    #send-chat:hover {
-      background: #0056b3;
-    }
-  `;
-  document.head.appendChild(chatStyles);
-
-  // ----- DEVICE ID -----
-  let deviceId = localStorage.getItem("deviceId");
-  if (!deviceId) {
-    deviceId = crypto.randomUUID();
-    localStorage.setItem("deviceId", deviceId);
+  if (containsLink(text)) {
+    alert("Les liens ne sont pas autorisés dans le chat.");
+    return;
   }
 
-  // ----- CHAT LOGIQUE -----
-  const chatInput = document.getElementById('chat-input');
-  const sendChatBtn = document.getElementById('send-chat');
-  const chatMessages = document.getElementById('chat-messages');
-
-  function containsLink(text) {
-    const linkRegex = /(https?:\/\/|www\.)\S+/i;
-    return linkRegex.test(text);
-  }
-
-  function sendMessage() {
-    const text = chatInput.value.trim();
-    if (text === "") return;
-
-    if (containsLink(text)) {
-      alert("Les liens ne sont pas autorisés dans le chat.");
-      return;
-    }
-
-    db.collection("chat").add({
-      message: text,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      deviceId: deviceId
-    });
-
+  if (containsForbiddenWord(text)) {
+    // Juste vider le champ sans envoyer
     chatInput.value = "";
+    return;
   }
 
-  sendChatBtn.addEventListener("click", sendMessage);
-  chatInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
+  const pseudo = localStorage.getItem("pseudo") || "Anonyme";
+
+  db.collection("chat").add({
+    message: text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    deviceId: deviceId,
+    pseudo: pseudo,
   });
 
-  // ----- AFFICHAGE TEMPS RÉEL -----
-  db.collection("chat").orderBy("timestamp", "asc").onSnapshot(snapshot => {
-    chatMessages.innerHTML = "";
+  chatInput.value = "";
+}
 
-    snapshot.forEach(doc => {
-      const msg = doc.data();
-      const bubble = document.createElement('div');
-      bubble.classList.add('chat-message');
+sendChatBtn.addEventListener("click", sendMessage);
+chatInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
 
-      if (msg.deviceId === deviceId) {
-        bubble.classList.add('from-me');
-      } else {
-        bubble.classList.add('from-others');
-      }
+// Affichage en temps réel
+db.collection("chat").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+  chatMessages.innerHTML = "";
+  snapshot.forEach(doc => {
+    const msg = doc.data();
+    const bubble = document.createElement('div');
+    bubble.classList.add('chat-message');
 
-      // Affichage heure/date
-      let timeDisplay = '';
-      if (msg.timestamp && msg.timestamp.toDate) {
-        const msgDate = msg.timestamp.toDate();
-        const now = new Date();
-        const diff = now - msgDate;
+    if (msg.deviceId === deviceId) {
+      bubble.classList.add('from-me');
+    } else {
+      bubble.classList.add('from-others');
+    }
 
-        if (diff < 24 * 60 * 60 * 1000) {
-          // Heure (moins de 24h)
-          const h = msgDate.getHours().toString().padStart(2, '0');
-          const m = msgDate.getMinutes().toString().padStart(2, '0');
-          timeDisplay = `${h}:${m}`;
-        } else {
-          // Date (plus de 24h)
-          const d = msgDate.getDate().toString().padStart(2, '0');
-          const mo = (msgDate.getMonth() + 1).toString().padStart(2, '0');
-          const y = msgDate.getFullYear();
-          timeDisplay = `${d}/${mo}/${y}`;
-        }
-      }
+    const pseudoDiv = document.createElement('div');
+    pseudoDiv.classList.add('chat-pseudo');
+    pseudoDiv.textContent = msg.pseudo || "Anonyme";
 
-      bubble.innerHTML = `
-        <div>${msg.message}</div>
-        <span class="chat-timestamp">${timeDisplay}</span>
-      `;
+    const textDiv = document.createElement('div');
+    textDiv.textContent = msg.message;
 
-      chatMessages.appendChild(bubble);
-    });
+    const info = document.createElement('div');
+    info.classList.add('message-info');
+    info.textContent = formatTimestamp(msg.timestamp);
 
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    bubble.appendChild(pseudoDiv);
+    bubble.appendChild(textDiv);
+    bubble.appendChild(info);
+
+    chatMessages.appendChild(bubble);
   });
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+
+// Au démarrage, gestion pseudo et chat fermé
+const savedPseudo = localStorage.getItem("pseudo");
+if (savedPseudo && savedPseudo.trim() !== "") {
+  updateUsername(savedPseudo);
+  modalOverlay.style.display = "none";
+  chatContainer.style.display = "none";
+  chatVisible = false;
+  toggleChatBtn.textContent = '💬';
+} else {
+  modalOverlay.style.display = "flex";
+  chatContainer.style.display = "none";
+  chatVisible = false;
+  toggleChatBtn.textContent = '💬';
+}
