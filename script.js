@@ -189,7 +189,8 @@ validateBtn.addEventListener('click', () => {
     currentColorChoice = colorInput.value;
     createPixel(pixelX, pixelY, currentColorChoice);
 
-    const pixel = { x: pixelX, y: pixelY, color: currentColorChoice };
+    const pseudo = localStorage.getItem("pseudo") || "Anonyme";
+    const pixel = { x: pixelX, y: pixelY, color: currentColorChoice, pseudo };
     const pixelRef = db.collection('pixels').doc(`${pixel.x}-${pixel.y}`);
     pixelRef.set(pixel, { merge: true }).catch(console.error);
 
@@ -197,10 +198,7 @@ validateBtn.addEventListener('click', () => {
     validateBtn.style.display = 'none';
     colorPickerOpen = false;
 
-    // Réactiver le curseur personnalisé
     cursorFollowEnabled = true;
-
-    // Cacher la souris native
     game.style.cursor = 'none';
 });
 
@@ -753,3 +751,81 @@ if (savedPseudo && savedPseudo.trim() !== "") {
   chatVisible = false;
   toggleChatBtn.textContent = '💬';
 }
+
+
+
+// ----- INFOS PSEUDO AU SURVOL (style cohérent) -----
+const pixelInfoTooltip = document.createElement('div');
+pixelInfoTooltip.id = 'pixel-tooltip';
+pixelInfoTooltip.style.position = 'absolute';
+pixelInfoTooltip.style.padding = '10px 16px';
+pixelInfoTooltip.style.background = 'white';
+pixelInfoTooltip.style.borderRadius = '12px';
+pixelInfoTooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+pixelInfoTooltip.style.fontSize = '14px';
+pixelInfoTooltip.style.fontWeight = 'bold';
+pixelInfoTooltip.style.fontFamily = 'Segoe UI, sans-serif';
+pixelInfoTooltip.style.color = '#333';
+pixelInfoTooltip.style.pointerEvents = 'none';
+pixelInfoTooltip.style.zIndex = '2000';
+pixelInfoTooltip.style.display = 'none';
+pixelInfoTooltip.style.transition = 'opacity 0.2s ease';
+pixelInfoTooltip.style.opacity = '0';
+document.body.appendChild(pixelInfoTooltip);
+
+// Style sombre si dark mode
+const pixelTooltipStyle = document.createElement('style');
+pixelTooltipStyle.textContent = `
+  body.dark-mode #pixel-tooltip {
+    background: #1e1e1e;
+    color: #f0f0f0;
+    box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+  }
+`;
+document.head.appendChild(pixelTooltipStyle);
+
+let lastHoverCoord = "";
+
+game.addEventListener('mousemove', async (event) => {
+    if (colorPickerOpen) return;
+
+    const rect = game.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / gridCellSize) * gridCellSize;
+    const y = Math.floor((event.clientY - rect.top) / gridCellSize) * gridCellSize;
+
+    const coordKey = `${x}-${y}`;
+    if (coordKey === lastHoverCoord) return;
+
+    lastHoverCoord = coordKey;
+
+    try {
+        const pixelDoc = await db.collection("pixels").doc(coordKey).get();
+        if (pixelDoc.exists) {
+            const data = pixelDoc.data();
+            if (data.pseudo) {
+                pixelInfoTooltip.textContent = `🎨 Posé par : ${data.pseudo}`;
+                pixelInfoTooltip.style.left = `${event.clientX + 12}px`;
+                pixelInfoTooltip.style.top = `${event.clientY + 12}px`;
+                pixelInfoTooltip.style.display = 'block';
+                requestAnimationFrame(() => {
+                    pixelInfoTooltip.style.opacity = '1';
+                });
+            } else {
+                pixelInfoTooltip.style.opacity = '0';
+                setTimeout(() => { pixelInfoTooltip.style.display = 'none'; }, 200);
+            }
+        } else {
+            pixelInfoTooltip.style.opacity = '0';
+            setTimeout(() => { pixelInfoTooltip.style.display = 'none'; }, 200);
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération du pixel :", error);
+    }
+});
+
+game.addEventListener('mouseleave', () => {
+    pixelInfoTooltip.style.opacity = '0';
+    setTimeout(() => {
+        pixelInfoTooltip.style.display = 'none';
+    }, 200);
+});
